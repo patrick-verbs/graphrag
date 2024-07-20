@@ -98,7 +98,7 @@ def index_cli(
             root, None, verbose, dryrun or False, progress_reporter
         )
     cache = NoopPipelineCache() if nocache else None
-    pipeline_emit = emit.split(",") if emit else None
+    pipeline_emit = [s.strip() for s in emit.split(",")] if emit else None
     encountered_errors = False
 
     def _run_workflow_async() -> None:
