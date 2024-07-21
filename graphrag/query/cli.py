@@ -56,12 +56,15 @@ def __get_embedding_description_store(
 def run_global_search(
     data_dir: str | None,
     root_dir: str | None,
+    config_file: str | None,
     community_level: int,
     response_type: str,
     query: str,
 ):
     """Run a global search with the given query."""
-    data_dir, root_dir, config = _configure_paths_and_settings(data_dir, root_dir)
+    data_dir, root_dir, config = _configure_paths_and_settings(
+        data_dir, root_dir, config_file
+    )
     data_path = Path(data_dir)
 
     final_nodes: pd.DataFrame = pd.read_parquet(
@@ -94,12 +97,15 @@ def run_global_search(
 def run_local_search(
     data_dir: str | None,
     root_dir: str | None,
+    config_file: str | None,
     community_level: int,
     response_type: str,
     query: str,
 ):
     """Run a local search with the given query."""
-    data_dir, root_dir, config = _configure_paths_and_settings(data_dir, root_dir)
+    data_dir, root_dir, config = _configure_paths_and_settings(
+        data_dir, root_dir, config_file
+    )
     data_path = Path(data_dir)
 
     final_nodes = pd.read_parquet(data_path / "create_final_nodes.parquet")
@@ -157,15 +163,17 @@ def run_local_search(
 
 
 def _configure_paths_and_settings(
-    data_dir: str | None, root_dir: str | None
+    data_dir: str | None,
+    root_dir: str | None,
+    config: str | None,
 ) -> tuple[str, str | None, GraphRagConfig]:
-    if data_dir is None and root_dir is None:
-        msg = "Either data_dir or root_dir must be provided."
+    if data_dir is None and root_dir is None and config is None:
+        msg = "Either data_dir, root_dir, or config must be provided."
         raise ValueError(msg)
     if data_dir is None:
         data_dir = _infer_data_dir(cast(str, root_dir))
-    config = _create_graphrag_config(root_dir, data_dir)
-    return data_dir, root_dir, config
+    graphrag_config = _create_graphrag_config(root_dir, data_dir, config)
+    return data_dir, root_dir, graphrag_config
 
 
 def _infer_data_dir(root: str) -> str:
@@ -180,18 +188,25 @@ def _infer_data_dir(root: str) -> str:
     raise ValueError(msg)
 
 
-def _create_graphrag_config(root: str | None, data_dir: str | None) -> GraphRagConfig:
+def _create_graphrag_config(
+    root: str | None, data_dir: str | None, config: str | None
+) -> GraphRagConfig:
     """Create a GraphRag configuration."""
-    return _read_config_parameters(cast(str, root or data_dir))
+    return _read_config_parameters(cast(str, root or data_dir), config)
 
 
-def _read_config_parameters(root: str):
+def _read_config_parameters(root: str, config: str | None) -> GraphRagConfig:
     _root = Path(root)
-    settings_yaml = _root / "settings.yaml"
-    if not settings_yaml.exists():
-        settings_yaml = _root / "settings.yml"
-    settings_json = _root / "settings.json"
-
+    settings_yaml = (
+        Path(config)
+        if config and Path(config).suffix in [".yaml", ".yml"]
+        else _root / "settings.yaml"
+    )
+    settings_json = (
+        Path(config)
+        if config and Path(config).suffix == ".json"
+        else _root / "settings.json"
+    )
     if settings_yaml.exists():
         reporter.info(f"Reading settings from {settings_yaml}")
         with settings_yaml.open("r") as file:

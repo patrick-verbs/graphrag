@@ -25,30 +25,30 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--root",
-        help="The root directory to use for input data and output data.",
+        help="The root directory to use for input data and output data",
         required=True,
         type=str,
     )
     parser.add_argument(
         "--config",
-        help="The configuration yaml file to use when running the pipeline.",
-        # only required if resume is not defined
+        help="The configuration yaml file to use when running the pipeline",
+        # required if resume is not defined
         type=str,
     )
     parser.add_argument(
         "-v",
         "--verbose",
-        help="Runs the pipeline with verbose logging.",
+        help="Runs the pipeline with verbose logging",
         action="store_true",
     )
     parser.add_argument(
         "--mem-profile",
-        help="Runs the pipeline with memory profiling.",
+        help="Runs the pipeline with memory profiling",
         action="store_true",
     )
     parser.add_argument(
         "--resume",
-        help="Resume a given data run leveraging Parquet output files.",
+        help="Resume a given data run leveraging Parquet output files",
         # only required if config is not defined
         type=str,
     )
@@ -66,24 +66,23 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--dry-run",
-        help="Run the pipeline without actually executing any steps and inspect the configuration.",
+        help="Run the pipeline without actually executing any steps and inspect the configuration",
         action="store_true",
     )
     parser.add_argument("--no-cache", help="Disable LLM cache.", action="store_true")
     parser.add_argument(
         "--init",
-        help="Create an initial configuration in the given path.",
+        help="Create an initial configuration in the given path",
         action="store_true",
     )
     parser.add_argument(
         "--overlay-defaults",
-        help="Overlay default configuration values on a provided configuration file (--config).",
+        help="Overlay default configuration values on a provided configuration file (--config)",
         action="store_true",
     )
     args = parser.parse_args()
 
-    if not args.config and not args.root:
-        parser.error("must specify --root or --config")
+    # validate arguments
     if args.overlay_defaults and not args.config:
         parser.error("--overlay-defaults requires --config")
 
